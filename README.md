@@ -6,3 +6,9 @@ The files at this time include one main utility file called `caen.py`. The other
 The command line utilities include a binary or ascii to json writer, `writer.py`, a quick plotter called `plotter.py` and a square wave counter called `counter.py`.
 
 To use the library clone the repo. Later I will make a pip package.
+
+# Examples
+
+Using plotter.py:
+```python plotter.py -o 1000 -t 10000 wave_0.dat```
+
