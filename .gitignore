@@ -1,1 +1,4 @@
+*
+!.gitignore
 !*.py
+!README.md

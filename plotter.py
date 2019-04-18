@@ -1,25 +1,14 @@
-import reader,os,sys
-import matplotlib.pyplot as plt
-
-def lsGrep(path, contains):
-    return [dir for dir in os.listdir(path) if contains in dir]
+import caen,argparse
 
 if __name__=='__main__':
-    if len(sys.argv) >= 3:
-        truncate=int(sys.argv[2])
-    else:
-        truncate=1000
-    print("Truncating at %d"%truncate)
-    data=reader.readWavedump(sys.argv[1])
-    if truncate > len(data) or truncate == -1: truncate=len(data)
-    plt.plot(range(truncate),data[:truncate],linestyle='none',marker='.')
-    FOLDER="/tmp/www/"
-    FILE=os.path.join(FOLDER,"img.png")
-    if not os.path.isdir(FOLDER):
-        os.mkdir(FOLDER)
+    DESC="Command line utility to plot binary or ascii output from wavedump."
+    parser=argparse.ArgumentParser(description=DESC)
+    parser.add_argument('filename',type=str,nargs=1,help="The name of the file to open.")
+    parser.add_argument('-t','-n','--truncate',dest='truncate',metavar='truncate',type=int,nargs="?",help="The number of points to plot.",default=1000)
+    parser.add_argument('-o','--offset',dest='offset',metavar='offset',type=int,nargs="?",help="The number of points to initially skip.",default=0)
+    args=parser.parse_args()
+    plt=caen.plot(args.filename[0],args.truncate,args.offset)
     plt.show()
-    #plt.savefig(FILE)
-    #print("saved at %s"%FILE)
     
         
     

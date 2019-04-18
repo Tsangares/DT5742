@@ -1,11 +1,11 @@
-from reader import readWavedump
+from caen import parse
 import os,sys
 from statistics import *
 import matplotlib.pyplot as plt
 
 if __name__=='__main__':
     filename=sys.argv[1]
-    points=readWavedump(filename)
+    points=parse(filename)
     midpoint=(max(points)-min(points))/2+min(points)
     last=None
     totalUp=0
