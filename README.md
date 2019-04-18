@@ -9,6 +9,14 @@ To use the library clone the repo. Later I will make a pip package.
 
 # Examples
 
-Using plotter.py:
-```python plotter.py -o 1000 -t 10000 wave_0.dat```
+Using `plotter.py`:
 
+    python plotter.py -o 1000 -t 10000 wave_0.dat
+
+Using `writer.py`:
+
+    python writer.py -t 5 wave_0.dat output.json
+
+Using `counter.py`:
+
+    python3 counter.py wave_0.txt 
