@@ -1,11 +1,26 @@
 import matplotlib.pyplot as plt
 from numpy import fromfile,dtype
 
-def parseBinary(filename, header=True):
+def parseBinary(filename, header=True, offset=None):
     with open(filename, mode='rb') as f:
         if not header:
             return fromfile(f,dtype=dtype("<I"),count=-1)
-        d=list(fromfile(f,dtype=dtype("<I"),count=-1))
+        '''
+        d=[]
+        data=fromfile(f,dtype=dtype("<I"),count=-1)
+        print(data[0:10])
+        c=0
+        for index,value in enumerate(data):
+            if c==3: break
+            if index%100000==0:
+                print("Processed 100000 events. %.02f%%"%(float(index)/len(data)*100))
+                c+=1
+            if offset is not None:
+                d.append(float(value)/float(2**32)-1/2+offset)
+            else:
+                d.append(value)
+        '''
+        d=fromfile(f,dtype=dtype("<I"),count=-1)
         trace=[]
         length=1030
         offset=6
@@ -41,4 +56,4 @@ if __name__=='__main__':
     #data=parseBinary('no_head.dat')
     #print(data[:10])
     data=parseBinary('wave_0.dat',True)
-    plotEvent(data,2)
+    plotEvent(data,0)
