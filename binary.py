@@ -28,12 +28,14 @@ def getPulse(waveform,polarity=1):
         threshold=getGentleThreshold(waveform,polarity)
         width=getPulseWidth(waveform,polarity,threshold)
         #As an alternative you could try a different window.
+    '''
     plt.plot(waveform[width[0]:width[1]],linestyle="None",marker='.')
     plt.xlabel('Time (index)')
     plt.ylabel('Voltage (V)')
     plt.title("Example of an extracted pulse from a waveform")
     plt.plot()
     plt.show()
+    '''
     return waveform[width[0]:width[1]]
 
 def getPulseWidth(waveform,polarity=1,threshold=None):
@@ -91,11 +93,9 @@ if __name__ == '__main__':
             plt.show()
         x.append(nPulses)
         y.append(summation)
-    m,b=polyfit(x,y,1)
-    plt.plot([0,8],[b,m*8+b],label="y=%.02e x + %.02e"%(m,b),color='y')
-    plt.plot(x,y,linestyle="None",marker="8",color='m')
-    plt.ylabel("Area Under the Pulse's Waveform (32 bit ADC Count)")
-    plt.xlabel("Number of Pulses (N)")
+    plt.hist(y,30)
+    plt.ylabel("# of instances")
+    plt.xlabel("Area under the pulse")
     plt.title("Area of Various Pulse Bunches through the Spreader")
     plt.legend()
     plt.show()
