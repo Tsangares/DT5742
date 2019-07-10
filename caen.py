@@ -4,7 +4,6 @@ import ROOT
 from array import array
 import time,os,random
 import sys
-from statistics import mean
 def parseBinary(filename, header=True, offset=None):
     with open(filename, mode='rb') as f:
         if not header:
@@ -82,7 +81,8 @@ if __name__=='__main__':
     with open(mapFile,'r') as f:
         lines=f.read().split('\n')
         mapping=[l.split(' ') for l in lines]
-    averageColumn=mean([len(l) for l in mapping])
+    a=[len(l) for l in mapping]
+    averageColumn=sum(a)/len(a)
     mapping=[m for m in mapping if len(m) >= averageColumn]
     #dataPath=os.path.join(os.getcwd(),'1event_binary')
     dataPath=os.getcwd()
