@@ -45,13 +45,13 @@ def plotEvent(data,event=1):
     plt.plot(range(len(data[event])),data[event],linestyle="None",marker=".")
     plt.show()
 
-def plotGrid(folder,mapping):
+def plotGrid(folder,mapping,plt=None):
     columns=max([len(l) for l in mapping])
     rows=len(mapping)
     files=sorted([(int(f[-7:-4].replace('e','').replace('_','')),os.path.join(folder,f)) for f in os.listdir(folder) if 'wave' in f])
     files=[f[1] for f in files]
     data=[parseBinary(f)[0] for f in files]
-    plt=ROOT.TH2F('h3','Grid',columns,0,columns-1,rows,0,rows-1)
+    if plt is None: plt=ROOT.TH2F('h3','Grid',columns,0,columns-1,rows,0,rows-1)
     unordered=[]
     for j in range(rows):
         for i in range(columns):
@@ -71,6 +71,8 @@ def plotGrid(folder,mapping):
             plt.SetBinContent(x+1,y+1,min(data[index]))
     ROOT.gStyle.SetOptStat(0)
     plt.Draw("COLZ")
+    return plt
+    
     
 if __name__=='__main__':
     index=0
@@ -84,7 +86,11 @@ if __name__=='__main__':
     mapping=[m for m in mapping if len(m) >= averageColumn]
     #dataPath=os.path.join(os.getcwd(),'1event_binary')
     dataPath=os.getcwd()
-    plotGrid(dataPath,mapping)
-    time.sleep(20)
+    plot=None
+    while True:
+        plot=plotGrid(dataPath,mapping,plot)
+        print("Plot refreshed.",time.time())
+        time.sleep(4)
+        
     
 
