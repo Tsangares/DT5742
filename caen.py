@@ -1,20 +1,43 @@
 import matplotlib.pyplot as plt
 from numpy import fromfile,dtype
-import ROOT
 from array import array
+import seaborn as sns
 import time,os,random
-import sys
-def parseBinary(filename, header=True, offset=None):
+import sys,subprocess
+
+def extractFieldInGroup(data,field,key):
+    if issubclass(type(data),str): data=data.split('\n')
+    found=False
+    for i,d in enumerate(data):
+        if field in d and '#' not in d:
+            found=True
+        if found and key in d:
+            return d
+
+def getOffset(filename,config='config.txt'):
+    chan=getChan(filename)
+    with open(config,'r') as f:
+        configData=f.read().split('\n')
+        group1=extractFieldInGroup(configData,'[0]','GRP_CH_DC_OFFSET').split(' ')[-1].split(',')
+        group2=extractFieldInGroup(configData,'[1]','GRP_CH_DC_OFFSET').split(' ')[-1].split(',')
+        offsets=[float(o) for o in group1+group2]
+        dc_offset=offsets[chan]/50
+        return dc_offset
+
+def parseBinary(filename, header=True, offset=None, readConfig=True):
     with open(filename, mode='rb') as f:
         if not header:
             return fromfile(f,dtype=dtype("<f"),count=-1)
         d=fromfile(f,dtype=dtype("<f"),count=-1)
         trace=[]
+        dc_offset=0
+        if readConfig:
+            dc_offset=getOffset(filename)
         length=1030
         offset=6
-        vOffset=0
         for i in range(len(d)//length):
-            trace.append([float(w)/(2**12-1)+vOffset for w in d[i*length+offset:(i+1)*length]])
+            trace.append([float(w)/(2**12-1)+dc_offset for w in d[i*length+offset:(i+1)*length]])
+            #trace.append([float(w) for w in d[i*length+offset:(i+1)*length]])
         return trace
 
 
@@ -44,37 +67,41 @@ def plotEvent(data,event=1):
     plt.plot(range(len(data[event])),data[event],linestyle="None",marker=".")
     plt.show()
 
-def plotGrid(folder,mapping,plt=None):
+def getChan(filename):
+    return int(filename[-7:-4].replace('e','').replace('_',''))
+def plotGrid(folder,mapping,plot=None):
     columns=max([len(l) for l in mapping])
     rows=len(mapping)
-    files=sorted([(int(f[-7:-4].replace('e','').replace('_','')),os.path.join(folder,f)) for f in os.listdir(folder) if 'wave' in f])
+    files=sorted([(getChan(f),os.path.join(folder,f)) for f in os.listdir(folder) if '.dat' in f and 'wave' in f])
     files=[f[1] for f in files]
-    data=[parseBinary(f)[0] for f in files]
-    if plt is None: plt=ROOT.TH2F('h3','Grid',columns,0,columns-1,rows,0,rows-1)
-    unordered=[]
+    data=[min(parseBinary(f)[-1]) for f in files]
+    img=[[-1 for i in range(columns)] for j in range(rows)]
     for j in range(rows):
         for i in range(columns):
-            digit=int(mapping[j][i])
-            unordered.append(digit)
-            mapping[j][i]=digit
-    reverseMap=[None for i in range(max(unordered)+1)]
-    index=0
-    for j in range(rows):
-        for i in range(columns):
-            coord=int(mapping[j][i])
-            reverseMap[coord]=(i,j)
-            index+=1
-    for index,datum in enumerate(data):
-        if reverseMap[index] is not None:
-            x,y=reverseMap[index]
-            plt.SetBinContent(x+1,y+1,min(data[index]))
-    ROOT.gStyle.SetOptStat(0)
-    plt.Draw("COLZ")
-    return plt
-    
-    
-if __name__=='__main__':
-    index=0
+            chan=int(mapping[j][i])-1
+            num=data[chan]
+            img[j][i]=num
+    fig=plt.figure()
+    timer=fig.canvas.new_timer(interval=4000)
+    timer.add_callback(lambda: plt.close())
+    timer.start()
+    #plt.imshow(img,cmap='hot')
+    sns.heatmap(img, linewidth=0.5)
+    plt.savefig('static/heatmap.png')
+    #plt.show()
+
+from flask import Flask
+from multiprocessing import Process
+app = Flask(__name__)
+@app.route('/')
+def hello():
+    make2D()
+    return app.send_static_file('index.html')
+
+def startWeb():
+    app.run(host='0.0.0.0',port='8888')
+
+def make2D():
     mapFile="map.txt"
     if len(sys.argv) == 2:
         mapFile=sys.argv[1]
@@ -84,13 +111,13 @@ if __name__=='__main__':
     a=[len(l) for l in mapping]
     averageColumn=sum(a)/len(a)
     mapping=[m for m in mapping if len(m) >= averageColumn]
-    #dataPath=os.path.join(os.getcwd(),'1event_binary')
     dataPath=os.getcwd()
     plot=None
-    while True:
-        plot=plotGrid(dataPath,mapping,plot)
-        print("Plot refreshed.",time.time())
-        time.sleep(4)
-        
-    
 
+    plot=plotGrid(dataPath,mapping,plot)
+    print("Plot refreshed.",time.time())
+if __name__=='__main__':
+    p=Process(target=startWeb)
+    p.start()
+    time.sleep(1)
+    p2=subprocess.Popen('start firefox localhost:8888',shell=True)
