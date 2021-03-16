@@ -16,7 +16,12 @@ def parseBinary(filename):
         return traces
 
 def plotEvent(data,event=1):
-    plt.plot(range(len(data[event])),data[event],linestyle="None",marker=".")
+    rate=750 #MHz
+    time=[i/rate for i in range(len(data[event]))]
+    plt.plot(time,data[event],linestyle="None",marker=".")
+    plt.title(f"Event on channel {event}")
+    plt.ylabel("ADC (#)")
+    plt.xlabel("Time (1e-6s)")
     plt.show()
 
 def extractChannel(filename):
